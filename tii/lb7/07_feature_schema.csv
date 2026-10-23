@@ -1,0 +1,17 @@
+feature_name
+distance_km
+queue_size
+promised_minutes
+hour_sin
+hour_cos
+planned_speed_kmh
+missingindicator_distance_km
+missingindicator_queue_size
+missingindicator_planned_speed_kmh
+zone_center
+zone_east
+zone_north
+zone_south
+weather_clear
+weather_rain
+weather_snow

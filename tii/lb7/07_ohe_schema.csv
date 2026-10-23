@@ -1,0 +1,8 @@
+feature,source
+zone_center,zone
+zone_east,zone
+zone_north,zone
+zone_south,zone
+weather_clear,weather
+weather_rain,weather
+weather_snow,weather

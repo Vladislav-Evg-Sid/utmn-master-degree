@@ -1,0 +1,10 @@
+subset,feature,raw_missing,parse_errors,negative,zero_invalid,non_integer
+train,distance_km,0,1,0,0,0
+train,queue_size,1,0,0,0,0
+train,promised_minutes,0,0,0,0,0
+val,distance_km,0,1,0,0,0
+val,queue_size,0,0,0,0,0
+val,promised_minutes,0,0,0,0,0
+test,distance_km,0,0,0,0,0
+test,queue_size,0,0,0,0,0
+test,promised_minutes,0,0,0,0,0
