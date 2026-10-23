@@ -1,0 +1,6 @@
+check,passed
+unknown_weather_zero_block,True
+zero_promised_imputed_without_infinity,True
+invalid_date_imputed,True
+friday_saturday_sunday_indicator,True
+no_refit_in_edge_checks,True

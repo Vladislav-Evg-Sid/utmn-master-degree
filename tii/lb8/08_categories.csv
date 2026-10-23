@@ -1,0 +1,8 @@
+feature,category
+zone,center
+zone,east
+zone,north
+zone,south
+weather,clear
+weather,rain
+weather,snow

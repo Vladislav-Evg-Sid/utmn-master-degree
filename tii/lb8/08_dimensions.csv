@@ -1,0 +1,4 @@
+subset,rows_before,rows_after,columns_before,columns_after
+train,358,358,6,17
+val,120,120,6,17
+test,120,120,6,17

@@ -1,0 +1,11 @@
+{
+  "fresh_process": true,
+  "rows": 120,
+  "columns": 17,
+  "max_abs_diff": 0.0,
+  "predictions_equal": true,
+  "schema_equal": true,
+  "row_ids_equal": true,
+  "metrics_recomputed": true,
+  "model_preprocessing_equal": true
+}
