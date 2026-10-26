@@ -1,0 +1,15 @@
+{
+  "demo_intercept": 3.5714285714285676,
+  "demo_slope": 1.8452380952380962,
+  "mse": 0.9836309523809528,
+  "rmse": 0.9917817060124434,
+  "manual_error": 0.5833333333333357,
+  "manual_squared_error": 0.34027777777778057,
+  "intercept": 0.13931048094819204,
+  "n_features": 17,
+  "source_sha256": "d3aeb3ab0a23f7d8f6170517d2664e2b805dee396665f181612be5eb58600e3d",
+  "train_n": 358,
+  "val_n": 120,
+  "test_n": 120,
+  "test_evaluated": false
+}
