@@ -1,9 +1,9 @@
-# Правила преобразования признаков для занятий 7–10
+# Правила преобразования признаков для занятий 7–8
 import numpy as np
 import pandas as pd
-NUM_BASE = ['distance_km', 'queue_size', 'courier_load', 'promised_minutes']
+NUM_BASE = ['distance_km', 'queue_size',  'promised_minutes']
 CAT = ['zone', 'weather']
-NUM = NUM_BASE + ['hour_sin', 'hour_cos', 'planned_speed_kmh']
+NUM = NUM_BASE + ['hour_sin', 'hour_cos', 'planned_speed_kmh', 'is_weekend']
 INPUT = NUM_BASE + CAT + ['created_at']
 
 def make_features(X):
@@ -19,6 +19,7 @@ def make_features(X):
         f[name] = s.astype(object).where(s.notna(), np.nan)
     time = pd.to_datetime(f['created_at'], errors='coerce')
     hour = time.dt.hour.astype(float)
+    f['is_weekend'] = (time.dt.dayofweek >= 5).astype(float).where(time.notna(), np.nan)
     f['hour_sin'] = np.sin(2*np.pi*hour/24)
     f['hour_cos'] = np.cos(2*np.pi*hour/24)
     f['planned_speed_kmh'] = 60*f['distance_km']/f['promised_minutes']

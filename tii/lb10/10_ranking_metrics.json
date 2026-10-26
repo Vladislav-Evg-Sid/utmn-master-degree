@@ -1,0 +1,6 @@
+{
+  "ROC_AUC": 0.7547433035714285,
+  "AveragePrecision": 0.7403185927822507,
+  "positive_fraction_val": 0.4666666666666667,
+  "applicable": true
+}

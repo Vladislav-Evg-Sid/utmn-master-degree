@@ -1,0 +1,14 @@
+{
+  "train_n": 358,
+  "val_n": 120,
+  "test_n": 120,
+  "train_positive": 168,
+  "val_positive": 56,
+  "test_positive": 56,
+  "selected_t": 0.15,
+  "selected_val_cost": 12200,
+  "manual_cost_at_030": 24000,
+  "model_unchanged": true,
+  "test_probability_calls_in_run": 1,
+  "threshold_changed_after_test": false
+}
