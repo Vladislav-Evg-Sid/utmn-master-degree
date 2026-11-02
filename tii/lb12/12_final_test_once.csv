@@ -1,0 +1,2 @@
+model,threshold,N,TN,FP,FN,TP,accuracy,balanced_accuracy,precision,recall,f1,cost_rub,roc_auc,average_precision
+LogReg,0.15,120,5,59,1,55,0.5,0.5301339285714286,0.4824561403508772,0.9821428571428571,0.6470588235294118,13800,0.7458147321428572,0.7353339336770817

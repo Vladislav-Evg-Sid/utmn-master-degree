@@ -1,0 +1,8 @@
+{
+  "model": "LogReg",
+  "threshold": 0.15,
+  "validation_cost_rub": 12200,
+  "C_FP_rub": 200,
+  "C_FN_rub": 2000,
+  "test_status": "учебная контрольная оценка; тот же test уже анализировался в практике 10"
+}
