@@ -1,0 +1,3 @@
+﻿model,CV_MAE,best_params
+Ridge,8.254527411863766,{'model__alpha': 1.0}
+RandomForest,8.58526006834263,"{'model__max_depth': 4, 'model__min_samples_leaf': 5}"

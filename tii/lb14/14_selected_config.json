@@ -1,0 +1,13 @@
+{
+  "selected_model": "Ridge",
+  "selected_hyperparameters": {
+    "model__alpha": 1.0
+  },
+  "selection_metric": "TimeSeriesSplit(n_splits=4), mean MAE (minutes)",
+  "cv_mae_minutes": 8.254527411863766,
+  "train_dev_n": 479,
+  "test_n": 120,
+  "data_source": "orders_dirty.csv",
+  "random_state": 42,
+  "test_status": "контрольная учебная оценка: часть того же корпуса ранее анализировалась в работах 10–12"
+}

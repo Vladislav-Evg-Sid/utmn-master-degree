@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "C:\\Users\\VladS\\git\\utmn-master-degree\\.venv\\Scripts\\python.exe",
+    "-m",
+    "ipykernel_launcher",
+    "-f",
+    "{connection_file}"
+  ],
+  "display_name": "Python (корневое .venv)",
+  "language": "python"
+}
