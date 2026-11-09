@@ -1,0 +1,6 @@
+﻿metric,value
+ARI_base_vs_weather,0.9799944582132248
+mean_pairwise_ARI_weather,0.9751306483758763
+min_pairwise_ARI_weather,0.957364722877151
+numeric_columns,3.0
+weather_onehot_columns,4.0

@@ -1,0 +1,12 @@
+﻿seed_a,seed_b,ARI,comparison
+11.0,21.0,0.9888985838011165,seed_pair
+11.0,31.0,1.0,seed_pair
+11.0,41.0,1.0,seed_pair
+11.0,51.0,1.0,seed_pair
+21.0,31.0,0.9888985838011165,seed_pair
+21.0,41.0,0.9888985838011165,seed_pair
+21.0,51.0,0.9888985838011165,seed_pair
+31.0,41.0,1.0,seed_pair
+31.0,51.0,1.0,seed_pair
+41.0,51.0,1.0,seed_pair
+,,0.6795355160907651,scaled_vs_raw
