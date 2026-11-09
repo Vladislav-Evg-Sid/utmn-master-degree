@@ -1,0 +1,42 @@
+{
+  "source": "orders_dirty.csv",
+  "scope": "development time-CV only; test not used",
+  "cv_folds": 4,
+  "mae_dummy_min": 17.36578947368421,
+  "mae_ridge_min": 8.262736825227798,
+  "quality_gate_example": {
+    "schema_valid": true,
+    "better_than_baseline": true,
+    "all_fold_mae_below_35_min": true
+  },
+  "verdict": "нуждается в доработке",
+  "delta_mae_min": 9.103052648456412,
+  "max_ridge_fold_mae_min": 8.756686744013791,
+  "risks": [
+    {
+      "risk": "утечка данных",
+      "evidence": "late и actual_minutes известны после доставки; preprocessing fit только на train фолда",
+      "action": "контракт X и единый Pipeline"
+    },
+    {
+      "risk": "временной сдвиг",
+      "evidence": "медианы train/validation и MAE по фолдам различаются",
+      "action": "мониторинг входов и новая временная проверка"
+    },
+    {
+      "risk": "малые группы при детализации",
+      "evidence": "сейчас минимум 82 заказа в зоне; при дальнейшем делении n может стать <10",
+      "action": "контролировать n и не обобщать малые группы"
+    },
+    {
+      "risk": "крупные отдельные ошибки",
+      "evidence": "максимальная абсолютная OOF-ошибка Ridge около 90 минут",
+      "action": "контроль хвостов ошибок и разбор нетипичных заказов"
+    }
+  ],
+  "caveats": [
+    "synthetic educational data possible",
+    "group sizes and time drift matter",
+    "not an independent deployment approval"
+  ]
+}

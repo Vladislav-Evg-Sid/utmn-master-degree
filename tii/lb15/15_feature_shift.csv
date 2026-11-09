@@ -1,0 +1,5 @@
+﻿feature,median_train,median_validation,q1_train,q3_train,q1_validation,q3_validation,p95_train,p95_validation,missing_train_pct,missing_validation_pct
+distance_km,9.0,8.8,4.7,13.0,5.175,13.025,17.2,17.805,0.5571030640668524,0.0
+queue_size,9.0,10.0,5.0,14.0,6.0,17.0,21.0,21.049999999999997,0.2785515320334262,0.0
+promised_minutes,51.0,52.0,40.0,61.0,40.0,62.25,73.0,76.1,0.0,0.0
+courier_load,,,,,,,,,100.0,100.0
