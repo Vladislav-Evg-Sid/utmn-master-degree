@@ -1,0 +1,4 @@
+﻿point,nearest_4_other,N_eps,count_including_self
+B,"A:0.300, D:0.300, C:0.424, P:0.427","A, B, C, D, P",5
+P,"B:0.427, D:0.427, A:0.716, C:0.716","B, D, P",3
+Q,"H:3.960, F:4.104, G:4.104, E:4.243",Q,1
