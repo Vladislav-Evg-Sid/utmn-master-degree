@@ -1,0 +1,2 @@
+﻿source,n_raw,n_clean,n_dev,n_holdout,feature_1,feature_2,feature_3,EVR_PC1,EVR_PC2,EVR_2PC,ARI_3D_vs_2PC
+orders_dirty.csv,600,599,479,120,distance_km,queue_size,promised_minutes,0.646504430412508,0.3246296677546633,0.9711340981671713,0.9946064431508315
