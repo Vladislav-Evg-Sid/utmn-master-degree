@@ -1,0 +1,304 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "507529b3",
+   "metadata": {},
+   "source": [
+    "# Практическое занятие № 17 — DBSCAN и агломеративная кластеризация\n",
+    "**ТюмГУ · «Технологии искусственного интеллекта — 1» · 90 минут**\n",
+    "\n",
+    "Цель: понять ограничения K-means, освоить DBSCAN (ядро / граница / шум) и четыре типа связи в иерархической кластеризации. Параметры выбираются **без целевых меток**. `late` и `actual_minutes` запрещены для кластеризации заказов. Синтетические иллюстрации не являются доказательством качества на реальных данных.\n",
+    "\n",
+    "**Материалы:** `orders_dirty.csv` из занятий 3–16 или `demo_orders_17_18.csv` только для проверки запуска. Загружайте файлы в рабочую папку Colab. Все вычисления reproducible при `random_state=42`."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a7380b16",
+   "metadata": {},
+   "source": [
+    "## 1. Ручной пример: ядровая, граничная и шумовая точки (0–15 мин)\n",
+    "DBSCAN использует окрестность $N_\\varepsilon(x)=\\{x_j:d(x,x_j)\\leq\\varepsilon\\}$, включая саму точку. Ядровая точка: $|N_\\varepsilon(x)|\\geq MinPts$. Граничная точка достижима из ядра, но сама не является ядром. Шум имеет метку `-1`.\n",
+    "\n",
+    "При `eps=0.45`, `min_samples=4` разберите точки B, P и Q вручную (расстояние евклидово)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a3bf3bd7",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import sys, numpy as np, pandas as pd, matplotlib.pyplot as plt\n",
+    "from pathlib import Path\n",
+    "from sklearn.cluster import DBSCAN, KMeans, AgglomerativeClustering\n",
+    "from sklearn.datasets import make_moons\n",
+    "from sklearn.metrics import silhouette_score, adjusted_rand_score\n",
+    "from sklearn.impute import SimpleImputer\n",
+    "from sklearn.preprocessing import StandardScaler\n",
+    "from sklearn.neighbors import NearestNeighbors\n",
+    "from scipy.cluster.hierarchy import linkage, dendrogram\n",
+    "print('Python:', sys.version.split()[0]); import sklearn; print('scikit-learn:',sklearn.__version__)\n",
+    "np.set_printoptions(precision=3, suppress=True)\n",
+    "\n",
+    "POINTS = {'A':(0,0),'B':(.3,0),'C':(0,.3),'D':(.3,.3),\n",
+    "          'E':(3,3),'F':(3.2,3),'G':(3,3.2),'H':(3.2,3.2),\n",
+    "          'P':(.7,.15),'Q':(6,6)}\n",
+    "names=list(POINTS); xy=np.array(list(POINTS.values()),float)\n",
+    "eps_toy=0.45; minpts_toy=4\n",
+    "neighborhood={n:[names[j] for j in np.where(np.linalg.norm(xy-xy[i],axis=1)<=eps_toy+1e-12)[0]] for i,n in enumerate(names)}\n",
+    "for n in ['B','P','Q']:\n",
+    "    print(n, 'N_eps =', neighborhood[n], '|N| =',len(neighborhood[n]))\n",
+    "db_toy=DBSCAN(eps=eps_toy,min_samples=minpts_toy).fit(xy)\n",
+    "core_toy={names[i] for i in db_toy.core_sample_indices_}\n",
+    "classification={n:('шум' if lab==-1 else ('ядро' if n in core_toy else 'граница')) for n,lab in zip(names,db_toy.labels_)}\n",
+    "print('Классификация:',classification)\n",
+    "assert classification['B']=='ядро' and classification['P']=='граница' and classification['Q']=='шум'\n",
+    "fig,ax=plt.subplots(figsize=(7,4.5))\n",
+    "ax.scatter(xy[:,0],xy[:,1],c=db_toy.labels_,cmap='tab10',s=65,edgecolor='black')\n",
+    "for n,(x,y) in POINTS.items():ax.annotate(n,(x+.07,y+.07))\n",
+    "ax.set(xlabel='x',ylabel='y',title='Ручной пример DBSCAN: eps=0.45, MinPts=4');ax.grid(alpha=.2);plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6e5a6762",
+   "metadata": {},
+   "source": [
+    "**Самостоятельно:** объясните, почему P — граница, а не шум. Повторите с `min_samples=3`: как изменится тип P? Не называйте номера кластеров «классами задержки»."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3b8327f3",
+   "metadata": {},
+   "source": [
+    "## 2. Почему геометрия кластеров важна: две луны (15–30 мин)\n",
+    "На неполусферических группах K-means может разделить данные не по естественным изогнутым структурам. Сравните K-means, DBSCAN и Ward на **одном и том же** искусственном наборе. Для DBSCAN запишите долю шума и число непустых групп."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "df5b69e6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X_moon, _ = make_moons(n_samples=240, noise=.075, random_state=42)\n",
+    "rng=np.random.default_rng(42)\n",
+    "outliers=rng.uniform(low=[-1.25,-.95],high=[2.25,1.35],size=(18,2))\n",
+    "X_shape=np.vstack([X_moon,outliers])\n",
+    "shape_models={\n",
+    "    'K-means (K=2)':KMeans(n_clusters=2,n_init=10,random_state=42).fit_predict(X_shape),\n",
+    "    'DBSCAN (eps=0.19)':DBSCAN(eps=.19,min_samples=5).fit_predict(X_shape),\n",
+    "    'Ward (K=2)':AgglomerativeClustering(n_clusters=2,linkage='ward').fit_predict(X_shape)\n",
+    "}\n",
+    "fig,axs=plt.subplots(1,3,figsize=(13,3.9),constrained_layout=True)\n",
+    "for ax,(name,labs) in zip(axs,shape_models.items()):\n",
+    "    ax.scatter(X_shape[:,0],X_shape[:,1],c=labs,cmap='tab10',s=18,alpha=.85)\n",
+    "    ax.set_title(name+'\\nгрупп='+str(len(set(labs)-{-1}))+', шум='+str(int(np.sum(labs==-1))))\n",
+    "    ax.set(xlabel='x1',ylabel='x2');ax.grid(alpha=.15)\n",
+    "plt.show()\n",
+    "print('Важно: параметры для примера «луны» нельзя автоматически переносить на заказы.')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b240c8c2",
+   "metadata": {},
+   "source": [
+    "## 3. Подготовка заказов и защита от утечки (30–43 мин)\n",
+    "Работаем с тремя доступными при оформлении признаками. Сортируем по `created_at`, 80% ранних заказов — `dev` для выбора настроек. Последние 20% — `holdout`, который **не участвует в подборе `eps` и числа групп**. Заполнение пропусков и стандартизация обучаются только на `dev`. `order_id` нужен для аудита, `late` и `actual_minutes` — лишь для внешнего последующего анализа, не для кластеризации."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9d002a35",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "source=Path('orders_dirty.csv')\n",
+    "if not source.exists():source=Path('demo_orders_17_18.csv')\n",
+    "if not source.exists():raise FileNotFoundError('Загрузите orders_dirty.csv или demo_orders_17_18.csv рядом с блокнотом')\n",
+    "raw=pd.read_csv(source,encoding='utf-8-sig')\n",
+    "FEATURES=['distance_km','queue_size','promised_minutes']\n",
+    "required={'order_id','created_at',*FEATURES}\n",
+    "assert required.issubset(raw.columns),f'Нет столбцов: {required-set(raw.columns)}'\n",
+    "print('ИСТОЧНИК:',source.name, '— только демо!' if source.name.startswith('demo') else '— учебный набор')\n",
+    "print('Размер исходника:',raw.shape,'полные дубликаты:',raw.duplicated().sum())\n",
+    "df=raw.drop_duplicates().copy()\n",
+    "df['created_at']=pd.to_datetime(df['created_at'],errors='coerce')\n",
+    "df=df.dropna(subset=['created_at','order_id']).sort_values('created_at').drop_duplicates('order_id',keep='first').reset_index(drop=True)\n",
+    "for col in FEATURES:df[col]=pd.to_numeric(df[col],errors='coerce').replace([np.inf,-np.inf],np.nan)\n",
+    "assert all(c not in FEATURES for c in ['late','actual_minutes','order_id'])\n",
+    "cut=int(len(df)*.8)\n",
+    "assert cut>=20 and len(df)-cut>=5,'Мало валидных заказов для данной схемы'\n",
+    "dev=df.iloc[:cut].copy();holdout=df.iloc[cut:].copy()\n",
+    "assert set(dev['order_id']).isdisjoint(set(holdout['order_id']))\n",
+    "assert dev['created_at'].max()<=holdout['created_at'].min()\n",
+    "imp=SimpleImputer(strategy='median');scale=StandardScaler()\n",
+    "Z_dev=scale.fit_transform(imp.fit_transform(dev[FEATURES]))\n",
+    "Z_holdout=scale.transform(imp.transform(holdout[FEATURES]))\n",
+    "assert np.isfinite(Z_dev).all() and np.isfinite(Z_holdout).all()\n",
+    "print('dev:',len(dev),'holdout:',len(holdout),'признаки:',FEATURES)\n",
+    "print('Медианы (dev):',dict(zip(FEATURES,imp.statistics_.round(3))))\n",
+    "print('Шкала только dev: mean=',np.round(scale.mean_,3))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2248debe",
+   "metadata": {},
+   "source": [
+    "## 4. DBSCAN: k-distance, подбор eps и ограничение Silhouette (43–63 мин)\n",
+    "Для `min_samples=5` построим расстояние до **пятого соседа, считая саму точку**. Резкий перегиб кривой подсказывает кандидатов `eps`, но не определяет оптимум автоматически. В таблице фиксируем число групп, число/долю шума и Silhouette **только по непризнанным шумом объектам** при наличии хотя бы 2 кластеров. Не сравнивайте этот Silhouette напрямую с оценкой метода без отбрасывания шума."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ab468c68",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "min_samples=5\n",
+    "knn=NearestNeighbors(n_neighbors=min_samples).fit(Z_dev)\n",
+    "kdist=np.sort(knn.kneighbors(Z_dev)[0][:,-1]);quantiles=[.65,.80,.90,.95]\n",
+    "eps_candidates=np.unique(np.round(np.quantile(kdist,quantiles),4))\n",
+    "fig,ax=plt.subplots(figsize=(7.5,3.7));ax.plot(np.arange(len(kdist))+1,kdist)\n",
+    "for q in quantiles:ax.axhline(np.quantile(kdist,q),ls='--',lw=.9,label=f'q={q:.2f}')\n",
+    "ax.set(xlabel='Объекты в порядке роста k-distance',ylabel='Расстояние до 5-го соседа',title='Подбор диапазона eps (dev)')\n",
+    "ax.grid(alpha=.2);ax.legend(ncol=2,fontsize=8);plt.show()\n",
+    "\n",
+    "def dbscan_metrics(X,labels):\n",
+    "    non_noise=labels!=-1\n",
+    "    ncl=len(set(labels)-{-1});coverage=non_noise.mean()\n",
+    "    sil=np.nan\n",
+    "    if ncl>=2 and non_noise.sum()>ncl:\n",
+    "        sil=silhouette_score(X[non_noise],labels[non_noise])\n",
+    "    return int(ncl),int((~non_noise).sum()),float(coverage),float(sil)\n",
+    "\n",
+    "rows=[]; candidates={}\n",
+    "for eps in eps_candidates:\n",
+    "    model=DBSCAN(eps=float(eps),min_samples=min_samples).fit(Z_dev)\n",
+    "    labels=model.labels_; candidates[float(eps)]=model\n",
+    "    ncl,nnoise,coverage,sil=dbscan_metrics(Z_dev,labels)\n",
+    "    rows.append(dict(eps=float(eps),clusters=ncl,noise=nnoise,noise_pct=round(100*(1-coverage),1),silhouette_excl_noise=sil))\n",
+    "results_db=pd.DataFrame(rows)\n",
+    "print(results_db.to_string(index=False))\n",
+    "feasible=results_db[(results_db.clusters>=2)&(results_db.noise_pct<=35)&np.isfinite(results_db.silhouette_excl_noise)]\n",
+    "if len(feasible):\n",
+    "    chosen_eps=float(feasible.sort_values('silhouette_excl_noise',ascending=False).iloc[0].eps)\n",
+    "else:\n",
+    "    chosen_eps=float(eps_candidates[len(eps_candidates)//2]);print('Предупреждение: подходящих кандидатов с >=2 группами и <=35% шума нет; выбран демонстрационный eps.')\n",
+    "chosen_db=candidates[chosen_eps]\n",
+    "print('Выбран eps (только по dev):',chosen_eps,'группы/шум:',dbscan_metrics(Z_dev,chosen_db.labels_)[:2])\n",
+    "fig,ax=plt.subplots(figsize=(7,4));ax.scatter(Z_dev[:,0],Z_dev[:,1],c=chosen_db.labels_,cmap='tab10',s=24,alpha=.85)\n",
+    "ax.set(xlabel='distance_km (z)',ylabel='queue_size (z)',title='DBSCAN: 2D-вид кластеризации в 3D-пространстве')\n",
+    "ax.grid(alpha=.2);plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0e0b592d",
+   "metadata": {},
+   "source": [
+    "**Практическое исследование:** измените `min_samples` на 4 и 8, опишите, как изменились шум и число групп. Если шумовых объектов много, не объявляйте Silhouette «лучшим качеством» без оценки покрытия."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a08d22d3",
+   "metadata": {},
+   "source": [
+    "## 5. Иерархическая кластеризация и дендрограмма (63–80 мин)\n",
+    "Сравните `single`, `complete`, `average`, `ward` при одинаковом `K=3`. Ward минимизирует прирост внутрикластерной суммы квадратов; дендрограмма показывает порядок и высоту слияний. В отличие от DBSCAN, `AgglomerativeClustering` не имеет штатного `predict` для новых заказов."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "37554d57",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "K=3\n",
+    "rows_h=[];hier_labels={}\n",
+    "for method in ['single','complete','average','ward']:\n",
+    "    labs=AgglomerativeClustering(n_clusters=K,linkage=method).fit_predict(Z_dev)\n",
+    "    hier_labels[method]=labs\n",
+    "    counts=np.bincount(labs)\n",
+    "    sil=silhouette_score(Z_dev,labs) if len(set(labs))>1 and len(set(labs))<len(Z_dev) else np.nan\n",
+    "    rows_h.append(dict(linkage=method,clusters=len(set(labs)),min_size=int(counts.min()),max_size=int(counts.max()),silhouette=sil))\n",
+    "results_h=pd.DataFrame(rows_h);print(results_h.to_string(index=False))\n",
+    "Z_link=linkage(Z_dev,method='ward')\n",
+    "fig,ax=plt.subplots(figsize=(10,4.0))\n",
+    "dendrogram(Z_link,truncate_mode='lastp',p=min(20,len(dev)-1),show_leaf_counts=True,ax=ax)\n",
+    "ax.set(xlabel='Последние узлы дерева (число объектов в скобках)',ylabel='Расстояние объединения (Ward)',title='Усечённая дендрограмма Ward на dev')\n",
+    "plt.xticks(rotation=45,fontsize=8);plt.tight_layout();plt.show()\n",
+    "base=KMeans(n_clusters=K,n_init=10,random_state=42).fit_predict(Z_dev)\n",
+    "print('K-means vs Ward: ARI =',round(adjusted_rand_score(base,hier_labels['ward']),4))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "59611e19",
+   "metadata": {},
+   "source": [
+    "## 6. Вывод и ограничения для будущих заказов (80–90 мин)\n",
+    "DBSCAN не имеет обычного `predict`. Ниже показано **приближённое** правило: присвоить метку ближайшей ядровой точки, если расстояние до неё ≤ `eps`, иначе шум. Оно не пересчитывает плотность и не является полноценным DBSCAN на новых данных. Обязательно опишите этот компромисс в отчёте."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "38a60876",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "core_idx=chosen_db.core_sample_indices_\n",
+    "if len(core_idx):\n",
+    "    nearest_core=NearestNeighbors(n_neighbors=1).fit(Z_dev[core_idx])\n",
+    "    distances,idx=nearest_core.kneighbors(Z_holdout)\n",
+    "    approx_labels=np.where(distances[:,0]<=chosen_eps,chosen_db.labels_[core_idx[idx[:,0]]],-1)\n",
+    "else:\n",
+    "    approx_labels=np.full(len(holdout),-1,dtype=int)\n",
+    "print('Holdout: условно присвоено групп',len(set(approx_labels)-{-1}),'отмечено шумом',np.sum(approx_labels==-1))\n",
+    "exports=holdout[['order_id','created_at']].copy();exports['dbscan_nearest_core_approx']=approx_labels\n",
+    "exports.to_csv('17_holdout_approx.csv',index=False)\n",
+    "results_db.to_csv('17_dbscan_metrics.csv',index=False)\n",
+    "results_h.to_csv('17_hierarchical_metrics.csv',index=False)\n",
+    "print('Созданы 17_holdout_approx.csv, 17_dbscan_metrics.csv, 17_hierarchical_metrics.csv')\n",
+    "assert len(exports)==len(holdout) and exports.order_id.is_unique"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "130af68c",
+   "metadata": {},
+   "source": [
+    "### Что сдавать\n",
+    "1. Отчёт 2–4 страницы (без приложений): метод, исходная и рабочая выборки, ручной пример B/P/Q, две таблицы метрик, **k-distance**, дендрограмма, интерпретация 2–3 групп, ограничения/риск утечек.\n",
+    "2. Исполняемый `17_student.ipynb` (Restart & Run All) и по возможности CSV с результатами.\n",
+    "3. **Самостоятельно:** сравните результаты DBSCAN при `min_samples=4,5,8`; объясните, почему разные условия масштабирования изменяют понятие плотности.\n",
+    "\n",
+    "**Контроль:** в каких ситуациях K-means, Ward и DBSCAN принципиально расходятся? Что означает `-1`? Почему `silhouette` при высоком шуме может вводить в заблуждение?"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
