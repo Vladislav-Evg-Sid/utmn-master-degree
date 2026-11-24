@@ -1,0 +1,10 @@
+{
+  "model": "DeliveryMLP",
+  "n_inputs": 10,
+  "width": 16,
+  "dropout": 0.0,
+  "seed": 29,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0,
+  "threshold": 0.15
+}

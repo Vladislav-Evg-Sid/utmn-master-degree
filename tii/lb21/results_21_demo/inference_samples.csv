@@ -1,0 +1,13 @@
+order_id,distance_km,queue_size,promised_minutes,weather,zone,p_expected
+DMO-00360,18.76,13.0,45.0,rain,south,0.6494514
+DMO-00361,5.51,12.0,40.0,snow,east,0.26490036
+DMO-00362,21.98,9.0,66.0,rain,center,0.29321855
+DMO-00363,22.13,13.0,34.0,clear,north,0.7617926
+DMO-00364,26.44,17.0,70.0,clear,center,0.6036053
+DMO-00365,11.28,12.0,71.0,clear,south,0.08238995
+DMO-00366,24.57,9.0,53.0,clear,east,0.47117725
+DMO-00367,3.53,11.0,51.0,clear,east,0.06269457
+DMO-00368,27.84,8.0,42.0,clear,north,0.65263456
+DMO-00369,6.73,15.0,64.0,clear,south,0.078214966
+DMO-00370,11.09,13.0,31.0,clear,south,0.5441429
+DMO-00371,3.52,9.0,54.0,snow,east,0.073410995
