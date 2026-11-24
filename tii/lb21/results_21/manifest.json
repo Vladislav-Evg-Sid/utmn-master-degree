@@ -1,0 +1,59 @@
+{
+  "course": "Технологии искусственного интеллекта — 1",
+  "practice": 21,
+  "origin": "orders_dirty.csv / основной учебный источник из предыдущих работ; НЕ demo_orders_21_22.csv",
+  "raw_rows": 600,
+  "work_rows": 598,
+  "splits": {
+    "train": 358,
+    "validation": 119,
+    "test": 121
+  },
+  "data_sha256": "d3aeb3ab0a23f7d8f6170517d2664e2b805dee396665f181612be5eb58600e3d",
+  "feature_columns": [
+    "distance_km",
+    "queue_size",
+    "promised_minutes",
+    "weather",
+    "zone"
+  ],
+  "numeric_columns": [
+    "distance_km",
+    "queue_size",
+    "promised_minutes"
+  ],
+  "categorical_columns": [
+    "weather",
+    "zone"
+  ],
+  "forbidden_predictors": [
+    "late",
+    "actual_minutes",
+    "order_id",
+    "created_at"
+  ],
+  "selected_model": "MLP_16_reg",
+  "selected_seed": 29,
+  "selected_threshold": 0.2,
+  "criterion_checkpoint": "minimum validation BCE, patience=8, min_delta=0.0005",
+  "criterion_architecture": "max mean validation Average Precision across seeds",
+  "criterion_threshold": "min validation cost 60*FP + 300*FN on grid [0..1] step 0.05",
+  "cost_scenario_rub": {
+    "FP": 60,
+    "FN": 300
+  },
+  "independent_test_claim": false,
+  "test_predictions_computed": false,
+  "test_warning": "Та же тестовая часть уже оценивалась в занятии 20; независимость требует нового более позднего holdout.",
+  "python": "3.12.14",
+  "torch": "2.15.0+cpu",
+  "numpy": "2.2.5",
+  "pandas": "2.2.3",
+  "sklearn": "1.9.1",
+  "device": "cpu",
+  "run_seeds": [
+    13,
+    29,
+    47
+  ]
+}
