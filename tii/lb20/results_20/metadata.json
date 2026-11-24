@@ -1,0 +1,27 @@
+{
+  "seed": 42,
+  "source": "orders_dirty.csv",
+  "features": [
+    "distance_km",
+    "queue_size",
+    "promised_minutes",
+    "order_hour",
+    "zone",
+    "weather"
+  ],
+  "input_dim": 11,
+  "architecture": [
+    11,
+    32,
+    16,
+    1
+  ],
+  "threshold": 0.5,
+  "batch_size": 32,
+  "patience": 12,
+  "best_epoch": 26,
+  "torch": "2.15.0+cpu",
+  "numpy": "2.3.5",
+  "pandas": "3.0.1",
+  "sklearn": "1.9.1"
+}
