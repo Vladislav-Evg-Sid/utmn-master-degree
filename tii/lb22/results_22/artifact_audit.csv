@@ -1,0 +1,12 @@
+file,bytes,status
+manifest.json,1726,доказано
+model_config.json,173,доказано
+mlp_state.pt,4973,доказано
+preprocessor.joblib,3649,доказано
+split_membership.csv,23229,доказано
+experiments.csv,823,доказано
+selected_history.csv,1808,доказано
+validation_predictions.csv,8660,доказано
+validation_model_comparison.csv,653,доказано
+inference_samples.csv,627,доказано
+README.md,1251,доказано

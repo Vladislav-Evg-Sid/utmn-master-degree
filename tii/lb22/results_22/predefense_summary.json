@@ -1,0 +1,26 @@
+{
+  "source": "orders_dirty.csv / основной учебный источник из предыдущих работ; НЕ demo_orders_21_22.csv",
+  "bundle_sha256": "25a23d705eda213b0afdec35002a70f8f8488b40eab88acd578cb2ce44e8fc44",
+  "inference_delta_max": 2.5511245727027898e-08,
+  "validation_n": 119,
+  "validation_positive": 53,
+  "metrics": {
+    "AP": 0.7249532647238798,
+    "Brier": 0.20821777313730272,
+    "Precision": 0.4608695652173913,
+    "Recall": 1.0,
+    "F1": 0.6309523809523809,
+    "TN": 4,
+    "FP": 62,
+    "FN": 0,
+    "TP": 53,
+    "alerts": 115,
+    "alert_rate": 0.9663865546218487,
+    "cost_total_rub": 3720,
+    "cost_100_rub": 3126.0504201680674
+  },
+  "prototype_predefense": "GO",
+  "production": "NO-GO",
+  "test_evaluated_in_lb22": false,
+  "owners_and_deadlines_are_proposed": true
+}
